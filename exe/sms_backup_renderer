@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+require 'fileutils'
+require 'optparse'
+require 'sms_backup_renderer'
+require 'tempfile'
+
+optparse = OptionParser.new do |opts|
+  opts.banner = 'Usage: sms_backup_renderer INPUT_FILE OUTPUT_DIR [options]'
+
+  opts.on('--version', "Print program version and exit") do
+    puts "sms_backup_renderer #{SmsBackupRenderer::VERSION}"
+    exit 0
+  end
+end
+
+optparse.parse!
+if ARGV.length != 2
+  puts optparse
+  exit -1
+end
+
+input_file_path = ARGV.shift
+output_dir_path = ARGV.shift
+
+if File.exist?(output_dir_path)
+  STDERR.puts "ERROR: Output directory #{output_dir_path} already exists."
+  exit -2
+end
+
+input_tempfile = Tempfile.new('sms_backup_renderer')
+input_text = File.read(input_file_path)
+SmsBackupRenderer.fix_surrogate_pairs(input_text)
+File.write(input_tempfile.path, input_text)
+
+data_dir_path = File.join(output_dir_path, 'data')
+FileUtils.mkdir_p(data_dir_path)
+
+input_file = File.open(input_tempfile.path)
+messages = SmsBackupRenderer.parse(input_file, data_dir_path)
+input_file.close
+input_tempfile.close
+
+messages.each {|m| puts m.inspect}

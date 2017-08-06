@@ -33,6 +33,15 @@ module SmsBackupRenderer
       @parts = args[:parts] || []
       @subject = args[:subject]
     end
+
+    # Returns an Array of String addresses the message was sent to or received from, normalized in a
+    #   very hacky/incomplete/embarrassingly-US-centric way to help facilitate grouping conversations.
+    def normalized_addresses
+      address.split('~').map do |addr|
+        addr.gsub(/[\s\(\)\+\-]/, '')
+          .gsub(/\A1(\d{10})\z/, '\\1')
+      end.sort
+    end
   end
 
   class MessagePart

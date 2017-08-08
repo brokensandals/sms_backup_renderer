@@ -40,4 +40,6 @@ messages = SmsBackupRenderer.parse(input_file, data_dir_path)
 input_file.close
 input_tempfile.close
 
-messages.each {|m| puts m.inspect}
+message_groups = messages.group_by(&:normalized_addresses).values
+index_html = SmsBackupRenderer::IndexPage.new(output_dir_path, message_groups).render
+File.write(File.join(output_dir_path, 'index.html'), index_html)

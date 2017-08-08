@@ -22,7 +22,17 @@ module SmsBackupRenderer
     input_tempfile.close
 
     message_groups = messages.group_by(&:normalized_addresses).values
-    index_html = SmsBackupRenderer::IndexPage.new(output_dir_path, message_groups).render
-    File.write(File.join(output_dir_path, 'index.html'), index_html)
+
+    conversations_dir_path = File.join(output_dir_path, 'conversations')
+    FileUtils.mkdir_p(conversations_dir_path)
+
+    conversation_pages = message_groups.map.with_index do |group_messages, index|
+      path = File.join(conversations_dir_path, "#{index}.html")
+      SmsBackupRenderer::ConversationPage.new(path, group_messages)
+    end
+
+    conversation_pages.each(&:write)
+
+    SmsBackupRenderer::IndexPage.new(File.join(output_dir_path, 'index.html'), conversation_pages).write
   end
 end

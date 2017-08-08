@@ -5,30 +5,10 @@
   <title>SMS/MMS Conversations</title>
 </head>
 <body>
-<% message_groups.each do |messages| %>
-  <h1><%= messages.first.contact_name %> (<%= messages.first.address %>)</h1>
-  <% messages.each do |message| %>
-    <%= message.date_time.iso8601 %> <%= message.outgoing ? message.contact_name : 'Me' %>:
-    <% message.parts.each do |part| %>
-      <p class="message <%= message.outgoing ? 'outgoing' : 'incoming' %>">
-        <% case part
-           when TextPart %>
-          <% part.text.lines.each do |line| %>
-            <%= ERB::Util.html_escape(line) %>
-          <% end %>
-        <% when ImagePart %>
-          <img src="<%= relative_path(part.path)%>" type="<%= part.content_type%>"/>
-        <% when VideoPart %>
-          <video controls>
-            <source src="data:<%= part.content_type %>;base64,<%= relative_path(part.path) %>" type="<%= part.content_type %>" />
-            Message contains a video, but your browser can't/won't display it.
-          </video>
-        <% else %>
-          Message contains unsupported media type.
-        <% end %>
-      </p>
-    <% end %>
+<ul>
+  <% conversation_pages.each do |page| %>
+    <li><a href="<%= relative_path(page.output_file_path) %>"><%= page.title %></a></li>
   <% end %>
-<% end %>
+</ul>
 </body>
 </html>

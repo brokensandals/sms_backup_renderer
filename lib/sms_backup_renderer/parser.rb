@@ -34,18 +34,22 @@ module SmsBackupRenderer
       case node.name
       when 'sms'
         sms = Nokogiri::XML(node.outer_xml).at('/sms')
+        outgoing = sms_outgoing_type?(sms.attr('type'))
         messages << Message.new(
           address: sms.attr('address'),
           contact_name: sms.attr('contact_name'),
           date_time: DateTime.strptime(sms.attr('date'), '%Q'),
           parts: sms.attr('body') ? [TextPart.new(sms.attr('body'))] : [],
-          outgoing: sms_outgoing_type?(sms.attr('type')),
+          outgoing: outgoing,
+          receiver_addresses: outgoing ? [sms.attr('address')] : [],
+          sender_address: outgoing ? nil : sms.attr('address'),
           subject: sms.attr('subject'))
       when 'mms'
         mms = Nokogiri::XML(node.outer_xml).at('/mms')
         unless mms.attr('ct_t') == 'application/vnd.wap.multipart.related'
           raise "Unrecognized MMS ct_t #{mms.attr('ct_t')}"
         end
+        
         parts = mms.xpath('parts/part').map do |part|
           case part.attr('ct')
           when 'application/smil'
@@ -67,12 +71,21 @@ module SmsBackupRenderer
             UnsupportedPart.new(part.to_xml)
           end
         end.compact
+
+        addresses_by_whether_sender = mms.xpath('addrs/addr').group_by do |addr|
+          mms_sender_addr_type?(addr.attr('type'))
+        end.map do |is_sender, addrs|
+          [is_sender, addrs.map {|addr| addr.attr('address')}]
+        end.to_h
+
         messages << Message.new(
           address: mms.attr('address'),
           contact_name: mms.attr('contact_name'),
           date_time: DateTime.strptime(mms.attr('date'), '%Q'),
           outgoing: mms_outgoing_type?(mms.attr('m_type')),
-          parts: parts)
+          parts: parts,
+          receiver_addresses: addresses_by_whether_sender[false],
+          sender_address: addresses_by_whether_sender[true].first)
       end
     end
     messages
@@ -97,6 +110,15 @@ module SmsBackupRenderer
       true
     else
       raise "Unrecognized MMS m_type #{type}"
+    end
+  end
+
+  def self.mms_sender_addr_type?(type)
+    case type
+    when '137'
+      true
+    else
+      false
     end
   end
 end

@@ -5,9 +5,9 @@
   <title><%= title %></title>
 </head>
 <body>
-<h1><%= messages.first.contact_name %> (<%= messages.first.address %>)</h1>
+<h1><%= messages.first.contact_name %> (<%= messages.first.normalized_addresses.join(', ') %>)</h1>
 <% messages.each do |message| %>
-  <%= message.date_time.iso8601 %> <%= message.outgoing ? 'Me' : message.contact_name %>:
+  <%= message.date_time.iso8601 %> <%= message.sender_address || 'Me' %>:
   <% message.parts.each do |part| %>
     <p class="message <%= message.outgoing ? 'outgoing' : 'incoming' %>">
       <% case part

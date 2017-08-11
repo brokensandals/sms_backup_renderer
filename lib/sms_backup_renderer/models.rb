@@ -1,9 +1,6 @@
 module SmsBackupRenderer
   # Represents an SMS or MMS message.
   class Message
-    # Returns the String address the message was sent to or received from, such as '1 (234) 567-890'.
-    attr_reader :address
-
     # Returns a String displayable name for the sender or receiver of the message, such as 'Jacob Williams'.
     #   May be nil.
     attr_reader :contact_name
@@ -17,22 +14,31 @@ module SmsBackupRenderer
     # Returns an Array of MessagePart instances representing the contents of the message.
     attr_reader :parts
 
+    # Returns an Array of String addresses that received the message. For MMS messages there can be multiple.
+    #   For SMS messages received by the originator of the archive, will be empty array.
+    attr_reader :receiver_addresses
+
+    # Returns the String address the message was received from, such as '1 (234) 567-890'. Will be
+    #   nil for SMS messages sent by originator of the archive.
+    attr_reader :sender_address
+
     # Returns the String subject/title of the message, likely nil.
     attr_reader :subject
 
     def initialize(args)
-      @address = args[:address]
       @contact_name = args[:contact_name]
       @date_time = args[:date_time]
       @outgoing = args[:outgoing]
       @parts = args[:parts] || []
+      @receiver_addresses = args[:receiver_addresses]
+      @sender_address = args[:sender_address]
       @subject = args[:subject]
     end
 
     # Returns an Array of String addresses the message was sent to or received from, normalized in a
     #   very hacky/incomplete/embarrassingly-US-centric way to help facilitate grouping conversations.
     def normalized_addresses
-      address.split('~').map do |addr|
+      (receiver_addresses + [sender_address].compact).map do |addr|
         addr.gsub(/[\s\(\)\+\-]/, '')
           .gsub(/\A1(\d{10})\z/, '\\1')
       end.sort

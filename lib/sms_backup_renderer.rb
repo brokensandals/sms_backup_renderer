@@ -21,7 +21,7 @@ module SmsBackupRenderer
     input_file.close
     input_tempfile.close
 
-    message_groups = messages.group_by {|m| m.participants.map(&:normalized_address).sort}.values
+    message_groups = messages.group_by {|m| m.participants.reject(&:owner).map(&:normalized_address).sort}.values
 
     conversations_dir_path = File.join(output_dir_path, 'conversations')
     FileUtils.mkdir_p(conversations_dir_path)

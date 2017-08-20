@@ -7,13 +7,17 @@ module SmsBackupRenderer
     # Returns the String contact name for the participant, or nil if unknown.
     attr_reader :name
 
+    # Returns true if this participant is the owner of the archive, otherwise false.
+    attr_reader :owner
+
     # Returns true if this participant is a sender of the message, false if they are a recipient.
     attr_reader :sender
 
-    def initialize(address, name, sender)
-      @address = address
-      @name = name
-      @sender = sender
+    def initialize(args)
+      @address = args[:address]
+      @name = args[:name]
+      @owner = args[:owner]
+      @sender = args[:sender]
     end
 
     def normalized_address

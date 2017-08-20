@@ -39,7 +39,11 @@ module SmsBackupRenderer
           date_time: DateTime.strptime(sms.attr('date'), '%Q'),
           parts: sms.attr('body') ? [TextPart.new(sms.attr('body'))] : [],
           outgoing: outgoing,
-          participants: [Participant.new(sms.attr('address'), sms.attr('contact_name'), !outgoing)],
+          participants: [Participant.new(
+            address: sms.attr('address'),
+            name: sms.attr('contact_name'),
+            owner: false,
+            sender: !outgoing)],
           subject: sms.attr('subject'))
       when 'mms'
         mms = Nokogiri::XML(node.outer_xml).at('/mms')
@@ -69,12 +73,14 @@ module SmsBackupRenderer
           end
         end.compact
 
+        non_owner_addresses = parse_mms_combined_address(mms.attr('address'))
         address_contact_names = mms_address_contact_names(mms)
         participants = mms.xpath('addrs/addr').map do |addr|
           Participant.new(
-            addr.attr('address'),
-            address_contact_names[Participant.normalize_address(addr.attr('address'))],
-            mms_sender_addr_type?(addr.attr('type')))
+            address: addr.attr('address'),
+            name: address_contact_names[Participant.normalize_address(addr.attr('address'))],
+            owner: !non_owner_addresses.include?(Participant.normalize_address(addr.attr('address'))),
+            sender: mms_sender_addr_type?(addr.attr('type')))
         end
 
         messages << Message.new(
@@ -128,7 +134,7 @@ module SmsBackupRenderer
   #
   # Returns a Hash of String normalized addresses to String contact names.
   def self.mms_address_contact_names(mms)
-    addresses = mms.attr('address').split('~').map {|a| Participant.normalize_address(a)}
+    addresses = parse_mms_combined_address(mms.attr('address'))
     contact_names = mms.attr('contact_name').split(',').map(&:strip)
 
     # There may be more addresses than contact names. It seems like the addresses for unknown contacts
@@ -136,5 +142,17 @@ module SmsBackupRenderer
     addresses = addresses.take(contact_names.count)
 
     addresses.zip(contact_names).to_h
+  end
+
+  # The XML for MMSes contains an 'address' attribute containing a list of addresses separated by
+  # tildes. Although there are also separate 'addr' elements for each address, the combined attribute
+  # can be useful because it appears to exclude the owner of the archive's address, and because the
+  # order can be correlated with the contact_name attribute.
+  #
+  # address_attribute - the value of the 'address' attribute from the XML element for the MMS message
+  #
+  # Returns an Array of String normalized addresses.
+  def self.parse_mms_combined_address(address_attribute)
+    address_attribute.split('~').map {|a| Participant.normalize_address(a)}
   end
 end

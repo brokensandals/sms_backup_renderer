@@ -55,7 +55,7 @@ module SmsBackupRenderer
     end
 
     def title
-      "Conversation with #{messages.first.contact_name}"
+      "Conversation with #{messages.first.participants.map(&:name).compact.join(', ')}"
     end
   end
 end

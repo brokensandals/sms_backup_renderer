@@ -36,13 +36,10 @@ module SmsBackupRenderer
         sms = Nokogiri::XML(node.outer_xml).at('/sms')
         outgoing = sms_outgoing_type?(sms.attr('type'))
         messages << Message.new(
-          address: sms.attr('address'),
-          contact_name: sms.attr('contact_name'),
           date_time: DateTime.strptime(sms.attr('date'), '%Q'),
           parts: sms.attr('body') ? [TextPart.new(sms.attr('body'))] : [],
           outgoing: outgoing,
-          receiver_addresses: outgoing ? [sms.attr('address')] : [],
-          sender_address: outgoing ? nil : sms.attr('address'),
+          participants: [Participant.new(sms.attr('address'), sms.attr('contact_name'), !outgoing)],
           subject: sms.attr('subject'))
       when 'mms'
         mms = Nokogiri::XML(node.outer_xml).at('/mms')
@@ -72,20 +69,19 @@ module SmsBackupRenderer
           end
         end.compact
 
-        addresses_by_whether_sender = mms.xpath('addrs/addr').group_by do |addr|
-          mms_sender_addr_type?(addr.attr('type'))
-        end.map do |is_sender, addrs|
-          [is_sender, addrs.map {|addr| addr.attr('address')}]
-        end.to_h
+        address_contact_names = mms_address_contact_names(mms)
+        participants = mms.xpath('addrs/addr').map do |addr|
+          Participant.new(
+            addr.attr('address'),
+            address_contact_names[Participant.normalize_address(addr.attr('address'))],
+            mms_sender_addr_type?(addr.attr('type')))
+        end
 
         messages << Message.new(
-          address: mms.attr('address'),
-          contact_name: mms.attr('contact_name'),
           date_time: DateTime.strptime(mms.attr('date'), '%Q'),
           outgoing: mms_outgoing_type?(mms.attr('m_type')),
-          parts: parts,
-          receiver_addresses: addresses_by_whether_sender[false],
-          sender_address: addresses_by_whether_sender[true].first)
+          participants: participants,
+          parts: parts)
       end
     end
     messages
@@ -120,5 +116,25 @@ module SmsBackupRenderer
     else
       false
     end
+  end
+
+  # Build a hash of normalized addresses to contact names using information in an MMS XML record.
+  # The data in the archive does not provide any explicit mapping of addresses to contact names, but
+  # at least for me it seems like the tilde-separated address attribute and the comma-separated
+  # contact_name attribute are provided in the same order, so we can try to use those to build
+  # a mapping. Obviously, this is error-prone, but seems better than nothing.
+  #
+  # mms - nokogiri object representing the MMS element
+  #
+  # Returns a Hash of String normalized addresses to String contact names.
+  def self.mms_address_contact_names(mms)
+    addresses = mms.attr('address').split('~').map {|a| Participant.normalize_address(a)}
+    contact_names = mms.attr('contact_name').split(',').map(&:strip)
+
+    # There may be more addresses than contact names. It seems like the addresses for unknown contacts
+    # are placed at the end of the list. We'll omit them from the hash.
+    addresses = addresses.take(contact_names.count)
+
+    addresses.zip(contact_names).to_h
   end
 end

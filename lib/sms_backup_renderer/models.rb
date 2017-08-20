@@ -1,26 +1,54 @@
 module SmsBackupRenderer
+  # Represents a single sender or recipient of an SMS or MMS message.
+  class Participant
+    # Returns the String address of the participant, such as '1 (234) 567-890'.
+    attr_reader :address
+
+    # Returns the String contact name for the participant, or nil if unknown.
+    attr_reader :name
+
+    # Returns true if this participant is a sender of the message, false if they are a recipient.
+    attr_reader :sender
+
+    def initialize(address, name, sender)
+      @address = address
+      @name = name
+      @sender = sender
+    end
+
+    def normalized_address
+      @normalized_address ||= Participant.normalize_address(address)
+    end
+
+    # Normalizes a given address, for example '1 (234) 567-890' to '1234567890'.
+    #
+    # TODO: This is currently done in a very hacky, incomplete, embarrassingly-US-centric way.
+    #
+    # address - String address to normalize
+    #
+    # Returns the String normalized address.
+    def self.normalize_address(address)
+      address.gsub(/[\s\(\)\+\-]/, '')
+          .gsub(/\A1(\d{10})\z/, '\\1')
+    end
+  end
+
   # Represents an SMS or MMS message.
   class Message
-    # Returns a String displayable name for the sender or receiver of the message, such as 'Jacob Williams'.
-    #   May be nil.
-    attr_reader :contact_name
-
     # Returns the DateTime the message was sent or received.
     attr_reader :date_time
 
     # Returns true if the message was sent to address, false if received from address.
     attr_reader :outgoing
 
+    # Returns an Array of Participant instances representing the senders and recipients of the message.
+    #   For MMS messages there may be multiple recipients. For SMS messages, the originator of the archive
+    #   is never represented, so there will only be a sender (for incoming messages) or a recipient
+    #   (for outgoing messages).
+    attr_reader :participants
+
     # Returns an Array of MessagePart instances representing the contents of the message.
     attr_reader :parts
-
-    # Returns an Array of String addresses that received the message. For MMS messages there can be multiple.
-    #   For SMS messages received by the originator of the archive, will be empty array.
-    attr_reader :receiver_addresses
-
-    # Returns the String address the message was received from, such as '1 (234) 567-890'. Will be
-    #   nil for SMS messages sent by originator of the archive.
-    attr_reader :sender_address
 
     # Returns the String subject/title of the message, likely nil.
     attr_reader :subject
@@ -29,19 +57,14 @@ module SmsBackupRenderer
       @contact_name = args[:contact_name]
       @date_time = args[:date_time]
       @outgoing = args[:outgoing]
+      @participants = args[:participants]
       @parts = args[:parts] || []
-      @receiver_addresses = args[:receiver_addresses]
-      @sender_address = args[:sender_address]
       @subject = args[:subject]
     end
 
-    # Returns an Array of String addresses the message was sent to or received from, normalized in a
-    #   very hacky/incomplete/embarrassingly-US-centric way to help facilitate grouping conversations.
-    def normalized_addresses
-      (receiver_addresses + [sender_address].compact).map do |addr|
-        addr.gsub(/[\s\(\)\+\-]/, '')
-          .gsub(/\A1(\d{10})\z/, '\\1')
-      end.sort
+    # Returns the Participant instance for the message sender, or nil.
+    def sender
+      @sender ||= participants.detect(&:sender)
     end
   end
 

@@ -5,9 +5,9 @@
   <title><%= title %></title>
 </head>
 <body>
-<h1><%= messages.first.contact_name %> (<%= messages.first.normalized_addresses.join(', ') %>)</h1>
+<h1><%= messages.first.participants.map(&:name).compact.join(', ') %> (<%= messages.first.participants.map(&:address).join(', ') %>)</h1>
 <% messages.each do |message| %>
-  <%= message.date_time.iso8601 %> <%= message.sender_address || 'Me' %>:
+  <%= message.date_time.iso8601 %> <%= message.outgoing ? 'You' : (message.sender.name || message.sender.address) %>:
   <% message.parts.each do |part| %>
     <p class="message <%= message.outgoing ? 'outgoing' : 'incoming' %>">
       <% case part

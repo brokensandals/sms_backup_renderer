@@ -1,5 +1,6 @@
 require 'base64'
 require 'date'
+require 'digest'
 require 'nokogiri'
 
 module SmsBackupRenderer
@@ -26,8 +27,6 @@ module SmsBackupRenderer
   end
 
   def self.parse(input, data_dir_path)
-    data_file_seq = 1
-
     messages = []
     Nokogiri::XML::Reader(input).each do |node|
       next unless node.node_type == Nokogiri::XML::Reader::TYPE_ELEMENT
@@ -59,14 +58,16 @@ module SmsBackupRenderer
           when 'text/plain'
             TextPart.new(part.attr('text'))
           when /\Aimage\/(.+)\z/
-            path = File.join(data_dir_path, "#{data_file_seq}.#{$1}")
-            File.write(path, Base64.decode64(part.attr('data')))
-            data_file_seq += 1
+            data = Base64.decode64(part.attr('data'))
+            digest = Digest::MD5.hexdigest(data)
+            path = File.join(data_dir_path, "#{digest}.#{$1}")
+            File.write(path, data)
             ImagePart.new(part.attr('ct'), path)
           when /\Avideo\/(.+)\z/
-            path = File.join(data_dir_path, "#{data_file_seq}.#{$1}")
-            File.write(path, Base64.decode64(part.attr('data')))
-            data_file_seq += 1
+            data = Base64.decode64(part.attr('data'))
+            digest = Digest::MD5.hexdigest(data)
+            path = File.join(data_dir_path, "#{digest}.#{$1}")
+            File.write(path, data)
             VideoPart.new(part.attr('ct'), path)
           else
             UnsupportedPart.new(part.to_xml)

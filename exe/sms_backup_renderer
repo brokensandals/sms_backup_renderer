@@ -20,9 +20,4 @@ end
 input_file_path = ARGV.shift
 output_dir_path = ARGV.shift
 
-if File.exist?(output_dir_path)
-  STDERR.puts "ERROR: Output directory #{output_dir_path} already exists."
-  exit -2
-end
-
 SmsBackupRenderer.generate_html_from_archive(input_file_path, output_dir_path)

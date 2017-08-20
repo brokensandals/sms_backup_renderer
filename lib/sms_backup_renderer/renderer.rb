@@ -1,3 +1,4 @@
+require 'digest'
 require 'erb'
 require 'pathname'
 
@@ -56,6 +57,24 @@ module SmsBackupRenderer
 
     def title
       "Conversation with #{messages.first.participants.map(&:name).compact.join(', ')}"
+    end
+
+    # Returns a filename for a conversation page for the given participants, such as '123456789.html'.
+    # Should always return the same name for the same list of participants. The normalized addresses
+    # are used when they are numeric, but non-numeric addresses (such as email addresses) will be hex-encoded
+    # to avoid any problems with file name restrictions.
+    #
+    # participants - an Array of Participant instances
+    #
+    # Returns a String filename.
+    def self.build_filename(participants)
+      participants.map do |participant|
+        if participant.normalized_address =~ /\A\d+\z/
+          participant.normalized_address
+        else
+          '0x' + Digest.hexencode(participant.address)
+        end
+      end.sort.join('_') + '.html'
     end
   end
 end

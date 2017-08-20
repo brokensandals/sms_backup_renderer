@@ -26,8 +26,9 @@ module SmsBackupRenderer
     conversations_dir_path = File.join(output_dir_path, 'conversations')
     FileUtils.mkdir_p(conversations_dir_path)
 
-    conversation_pages = message_groups.map.with_index do |group_messages, index|
-      path = File.join(conversations_dir_path, "#{index}.html")
+    conversation_pages = message_groups.map do |group_messages|
+      filename = ConversationPage.build_filename(group_messages.first.participants.reject(&:owner))
+      path = File.join(conversations_dir_path, filename)
       SmsBackupRenderer::ConversationPage.new(path, group_messages)
     end
 

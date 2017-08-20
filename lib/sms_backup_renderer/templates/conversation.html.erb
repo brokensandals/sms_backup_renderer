@@ -19,7 +19,7 @@
         <img src="<%= relative_path(part.path)%>" type="<%= part.content_type%>"/>
       <% when VideoPart %>
         <video controls>
-          <source src="data:<%= part.content_type %>;base64,<%= relative_path(part.path) %>" type="<%= part.content_type %>" />
+          <source src="<%= relative_path(part.path) %>" type="<%= part.content_type %>" />
           Message contains a video, but your browser can't/won't display it.
         </video>
       <% else %>

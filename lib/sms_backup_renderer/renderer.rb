@@ -59,6 +59,20 @@ module SmsBackupRenderer
       "Conversation with #{messages.first.participants.map(&:name).compact.join(', ')}"
     end
 
+    def message_date_time_span(message, previous_message)
+      formatted = if previous_message && message.date_time.to_date == previous_message.date_time.to_date
+        if message.date_time.to_time - previous_message.date_time.to_time < 600
+          nil
+        else
+          message.date_time.strftime('%-I:%M%P')
+        end
+      else
+        message.date_time.strftime('%A, %b %-d, %Y at %-I:%M%P')
+      end
+      return '' unless formatted
+      "<span class=\"message-date-time\">#{formatted}</span>"
+    end
+
     def sender_span(message, previous_message)
       if previous_message &&
           message.outgoing == previous_message.outgoing &&

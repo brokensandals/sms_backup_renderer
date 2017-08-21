@@ -7,7 +7,7 @@
 <body>
 <h1><%= messages.first.participants.map(&:name).compact.join(', ') %> (<%= messages.first.participants.map(&:address).join(', ') %>)</h1>
 <% messages.zip([nil] + messages).each do |(message, previous_message)| %>
-  <%= message.date_time.iso8601 %> <%= sender_span(message, previous_message) %>
+  <%= message_date_time_span(message, previous_message) %> <%= sender_span(message, previous_message) %>
   <% message.parts.each do |part| %>
     <p class="message <%= message.outgoing ? 'outgoing' : 'incoming' %>">
       <% case part

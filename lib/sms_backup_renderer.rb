@@ -23,17 +23,20 @@ module SmsBackupRenderer
 
     message_groups = messages.group_by {|m| m.participants.reject(&:owner).map(&:normalized_address).sort}.values
 
+    assets_dir_path = File.join(output_dir_path, 'assets')
+    FileUtils.cp_r(File.join(File.dirname(__FILE__), 'sms_backup_renderer', 'assets'), output_dir_path)
     conversations_dir_path = File.join(output_dir_path, 'conversations')
     FileUtils.mkdir_p(conversations_dir_path)
 
     conversation_pages = message_groups.map do |group_messages|
       filename = ConversationPage.build_filename(group_messages.first.participants.reject(&:owner))
       path = File.join(conversations_dir_path, filename)
-      SmsBackupRenderer::ConversationPage.new(path, group_messages)
+      SmsBackupRenderer::ConversationPage.new(path, assets_dir_path, group_messages)
     end
 
     conversation_pages.each(&:write)
 
-    SmsBackupRenderer::IndexPage.new(File.join(output_dir_path, 'index.html'), conversation_pages).write
+    SmsBackupRenderer::IndexPage.new(
+      File.join(output_dir_path, 'index.html'), assets_dir_path, conversation_pages).write
   end
 end

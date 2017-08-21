@@ -3,30 +3,34 @@
 <head>
   <meta charset="UTF-8"/>
   <title><%= title %></title>
+  <link href="<%= asset_path('conversation.css') %>" rel="stylesheet"/>
 </head>
 <body>
-<h1><%= messages.first.participants.map(&:name).compact.join(', ') %> (<%= messages.first.participants.map(&:address).join(', ') %>)</h1>
+<h1><%= title %></h1>
 <% messages.zip([nil] + messages).each do |(message, previous_message)| %>
-  <%= message_date_time_span(message, previous_message) %> <%= sender_span(message, previous_message) %>
-  <% message.parts.each do |part| %>
-    <p class="message <%= message.outgoing ? 'outgoing' : 'incoming' %>">
-      <% case part
-         when TextPart %>
-        <% part.text.lines.each do |line| %>
-          <%= ERB::Util.html_escape(line) %>
+  <div class="message <%= message.outgoing ? 'outgoing' : 'incoming' %>">
+    <%= sender_span(message, previous_message) %>
+    <%= message_date_time_span(message, previous_message) %>
+    <% message.parts.each do |part| %>
+      <div class="message-part">
+        <% case part
+           when TextPart %>
+          <p class="message-part-text">
+            <%= part.text.lines.map { |line| ERB::Util.html_escape(line) }.join('<br/>') %>
+          </p>
+        <% when ImagePart %>
+          <img class="message-part-image" src="<%= relative_path(part.path)%>" type="<%= part.content_type%>"/>
+        <% when VideoPart %>
+          <video class="message-part-video" controls>
+            <source src="<%= relative_path(part.path) %>" type="<%= part.content_type %>" />
+            Message contains a video, but your browser can't/won't display it.
+          </video>
+        <% else %>
+          <p class="message-part-unsupported">Message contains unsupported media type.</p>
         <% end %>
-      <% when ImagePart %>
-        <img src="<%= relative_path(part.path)%>" type="<%= part.content_type%>"/>
-      <% when VideoPart %>
-        <video controls>
-          <source src="<%= relative_path(part.path) %>" type="<%= part.content_type %>" />
-          Message contains a video, but your browser can't/won't display it.
-        </video>
-      <% else %>
-        Message contains unsupported media type.
-      <% end %>
-    </p>
-  <% end %>
+      </div>
+    <% end %>
+  </div>
 <% end %>
 </body>
 </html>

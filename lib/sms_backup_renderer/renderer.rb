@@ -7,8 +7,12 @@ module SmsBackupRenderer
     # Returns the String path to where this file will be written.
     attr_reader :output_file_path
 
-    def initialize(output_file_path)
+    # Returns the String path to the folder where static assets have been copied to.
+    attr_reader :assets_dir_path
+
+    def initialize(output_file_path, assets_dir_path)
       @output_file_path = output_file_path
+      @assets_dir_path = assets_dir_path
     end
 
     def render
@@ -23,6 +27,11 @@ module SmsBackupRenderer
       Pathname.new(path).relative_path_from(Pathname.new(File.dirname(output_file_path))).to_s
     end
 
+    def asset_path(filename)
+      Pathname.new(File.join(assets_dir_path, filename))
+        .relative_path_from(Pathname.new(File.dirname(output_file_path))).to_s
+    end
+
     def template_name
       raise 'not implemented'
     end
@@ -32,8 +41,8 @@ module SmsBackupRenderer
     # Returns an Array ConversationPage instances which this page should link to.
     attr_reader :conversation_pages
 
-    def initialize(output_file_path, conversation_pages)
-      super(output_file_path)
+    def initialize(output_file_path, assets_dir_path, conversation_pages)
+      super(output_file_path, assets_dir_path)
       @conversation_pages = conversation_pages.sort_by(&:title)
     end
 
@@ -46,8 +55,8 @@ module SmsBackupRenderer
     # Returns an Array of Message instances to be shown on this page.
     attr_reader :messages
 
-    def initialize(output_file_path, messages)
-      super(output_file_path)
+    def initialize(output_file_path, assets_dir_path, messages)
+      super(output_file_path, assets_dir_path)
       @messages = messages.sort_by(&:date_time)
     end
 
@@ -56,7 +65,13 @@ module SmsBackupRenderer
     end
 
     def title
-      "Conversation with #{messages.first.participants.map(&:name).compact.join(', ')}"
+      messages.first.participants.reject(&:owner).map do |participant|
+        if participant.name
+          "#{participant.name} (#{participant.normalized_address})"
+        else
+          participant.normalized_address
+        end
+      end.sort.join(', ')
     end
 
     def message_date_time_span(message, previous_message)

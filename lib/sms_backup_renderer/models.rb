@@ -39,7 +39,7 @@ module SmsBackupRenderer
 
   # Represents an SMS or MMS message.
   class Message
-    # Returns the DateTime the message was sent or received.
+    # Returns a Time instance indicating when the message was sent or received.
     attr_reader :date_time
 
     # Returns true if the message was sent to address, false if received from address.

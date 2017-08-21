@@ -1,5 +1,4 @@
 require 'base64'
-require 'date'
 require 'digest'
 require 'nokogiri'
 
@@ -35,7 +34,7 @@ module SmsBackupRenderer
         sms = Nokogiri::XML(node.outer_xml).at('/sms')
         outgoing = sms_outgoing_type?(sms.attr('type'))
         messages << Message.new(
-          date_time: DateTime.strptime(sms.attr('date'), '%Q'),
+          date_time: Time.strptime(sms.attr('date'), '%Q'),
           parts: sms.attr('body') ? [TextPart.new(sms.attr('body'))] : [],
           outgoing: outgoing,
           participants: [Participant.new(
@@ -85,7 +84,7 @@ module SmsBackupRenderer
         end
 
         messages << Message.new(
-          date_time: DateTime.strptime(mms.attr('date'), '%Q'),
+          date_time: Time.strptime(mms.attr('date'), '%Q'),
           outgoing: mms_outgoing_type?(mms.attr('m_type')),
           participants: participants,
           parts: parts)

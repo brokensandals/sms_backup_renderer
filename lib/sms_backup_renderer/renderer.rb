@@ -67,7 +67,7 @@ module SmsBackupRenderer
           message.date_time.strftime('%-I:%M%P')
         end
       else
-        message.date_time.strftime('%A, %b %-d, %Y at %-I:%M%P')
+        message.date_time.strftime('%A, %b %-d, %Y at %-I:%M%P %Z')
       end
       return '' unless formatted
       "<span class=\"message-date-time\">#{formatted}</span>"

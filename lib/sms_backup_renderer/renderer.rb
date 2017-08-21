@@ -59,6 +59,17 @@ module SmsBackupRenderer
       "Conversation with #{messages.first.participants.map(&:name).compact.join(', ')}"
     end
 
+    def sender_span(message, previous_message)
+      if previous_message &&
+          message.outgoing == previous_message.outgoing &&
+          (message.outgoing || message.sender.normalized_address == previous_message.sender.normalized_address)
+        ''
+      else
+        sender = message.outgoing ? 'You' : (message.sender.name || message.sender.normalized_address)
+        "<span class=\"sender\">#{ERB::Util.html_escape(sender)}</span>"
+      end
+    end
+
     # Returns a filename for a conversation page for the given participants, such as '123456789.html'.
     # Should always return the same name for the same list of participants. The normalized addresses
     # are used when they are numeric, but non-numeric addresses (such as email addresses) will be hex-encoded

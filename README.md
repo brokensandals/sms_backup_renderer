@@ -30,6 +30,8 @@ Determining the contact names for group MMS messages also relies on some pretty 
 It probably won't work right if you have contact names containing commas.
 It may not work right anyway - I'm not sure if the assumptions it makes about the backup archive are always true, or if they are coincidental implementation details that may be affected by the messaging software on your phone.
 
+Videos do not currently play in Chrome, and possibly other browsers, though they do in Safari. I haven't figured out why yet. You can still open the video file directly in the output directory (or download it through your browser) to play it.
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.

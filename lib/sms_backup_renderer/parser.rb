@@ -1,6 +1,7 @@
 require 'base64'
 require 'digest'
 require 'nokogiri'
+require 'time'
 
 module SmsBackupRenderer
   HIGH_SURROGATES = 0xD800..0xDFFF

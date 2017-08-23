@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<smses>
+  <!-- 2017-04-01 11:05:13 CDT -->
+  <sms date="1491062713000"
+       body="I'm unfamiliar with the concept of cats. Can you send me a picture to help me understand?"
+       type="1"
+       address="+1 (234) 567-8910"
+       contact_name="Jimothy Pumpernickel" />
+</smses>

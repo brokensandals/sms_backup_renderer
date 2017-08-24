@@ -61,6 +61,10 @@ RSpec.describe SmsBackupRenderer do
       it 'contains photo' do
         expect(contents).to include "<img class=\"message-part-image\" src=\"../data/#{photo_file_name}\""
       end
+
+      it 'contains emoji' do
+        expect(contents).to include '😁 😍'
+      end
     end
 
     after :all do

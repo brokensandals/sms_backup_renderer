@@ -9,6 +9,8 @@ RSpec.describe SmsBackupRenderer do
     data_dir_path = File.join(output_dir_path, 'data')
     index_page_path = File.join(output_dir_path, 'index.html')
     conversation_page_path = File.join(conversations_dir_path, '2345678910.html')
+    photo_file_name = '8013ecfc92a6081fb7b884adc514497a.jpeg'
+    photo_path = File.join(data_dir_path, photo_file_name)
 
     before :all do
       FileUtils.rm_r(output_dir_path) if File.exist?(output_dir_path)
@@ -20,7 +22,8 @@ RSpec.describe SmsBackupRenderer do
      conversations_dir_path,
      data_dir_path,
      index_page_path,
-     conversation_page_path].each do |path|
+     conversation_page_path,
+     photo_path].each do |path|
       it "creates #{path}" do
         expect(File.exist?(path)).to be true
       end
@@ -53,6 +56,10 @@ RSpec.describe SmsBackupRenderer do
 
       it 'contains first message text' do
         expect(contents).to include 'unfamiliar with the concept of cats'
+      end
+
+      it 'contains photo' do
+        expect(contents).to include "<img class=\"message-part-image\" src=\"../data/#{photo_file_name}\""
       end
     end
 

@@ -1,0 +1,50 @@
+h1 {
+  text-align: center;
+}
+
+body {
+  max-width: 600px;
+}
+
+.message {
+  margin-left: 40px;
+  max-width: 450px;
+}
+
+.message.outgoing {
+  margin-left: 150px;
+}
+
+.sender, .message-date-time {
+  font-size: 90%;
+  display: block;
+  margin: 0px;
+}
+
+.message-part {
+  margin: 10px 0px 10px 0px;
+}
+
+.message-part-image {
+  max-width: 100%;
+}
+
+.message-part-video {
+  max-width: 100%;
+}
+
+.message-part-text {
+  border-radius: 10px;
+  padding: 5px;
+  margin: 0;
+}
+
+.incoming .message-part-text {
+  background-color: beige;
+  display: inline-block;
+}
+
+.outgoing .message-part-text {
+  color: white;
+  background-color: darkgoldenrod;
+}

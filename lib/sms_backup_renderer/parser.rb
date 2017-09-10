@@ -84,6 +84,12 @@ module SmsBackupRenderer
             sender: mms_sender_addr_type?(addr.attr('type')))
         end
 
+        # Some messages include the sender as a recipient as well; we don't want Participants
+        # for those recipients since it would interfere with proper conversation grouping.
+        if sender = participants.detect(&:sender)
+          participants.delete_if { |p| !p.sender && p.normalized_address == sender.normalized_address}
+        end
+
         messages << Message.new(
           date_time: Time.strptime(mms.attr('date'), '%Q'),
           outgoing: mms_outgoing_type?(mms.attr('m_type')),

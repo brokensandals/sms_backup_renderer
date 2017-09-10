@@ -46,7 +46,7 @@ module SmsBackupRenderer
           subject: sms.attr('subject'))
       when 'mms'
         mms = Nokogiri::XML(node.outer_xml).at('/mms')
-        unless mms.attr('ct_t') == 'application/vnd.wap.multipart.related'
+        unless ['null', 'application/vnd.wap.multipart.related'].include?(mms.attr('ct_t'))
           raise "Unrecognized MMS ct_t #{mms.attr('ct_t')}"
         end
         

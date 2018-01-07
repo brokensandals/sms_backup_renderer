@@ -1,5 +1,7 @@
 # SmsBackupRenderer
 
+[![Build Status](https://travis-ci.org/brokensandals/sms_backup_renderer.svg?branch=master)](https://travis-ci.org/brokensandals/sms_backup_renderer)
+
 This tool reads backup files created by [SMS Backup & Restore](https://www.carbonite.com/en/apps/call-log-sms-backup-restore) and generates static HTML files for viewing their contents.
 
 It supports both SMS and MMS messages, including images and videos.
